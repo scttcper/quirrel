@@ -11,6 +11,7 @@ import { QueueRepo } from "./queue-repo";
 import { Redis } from "ioredis";
 import { fastifyDecoratorPlugin } from "./helper/fastify-decorator-plugin";
 import * as config from "../../client/config";
+import { AcknowledgementDescriptor } from "@quirrel/owl/dist/shared/acknowledger";
 
 interface PaginationOpts {
   cursor: number;
@@ -326,6 +327,56 @@ export class JobsRepo implements Closable {
     );
 
     return () => activity.close();
+  }
+
+  private verifyAckDescriptor(
+    descriptor: string,
+    tokenId: string
+  ): AcknowledgementDescriptor | null {
+    // TODO: implement some form of signature checks
+    const {
+      queueId,
+      jobId,
+      timestampForNextRetry,
+      nextExecutionDate,
+    } = JSON.parse(descriptor);
+    const { tokenId: queueTokenId } = decodeQueueDescriptor(queueId);
+    if (tokenId !== queueTokenId) {
+      return null;
+    }
+    return {
+      queueId,
+      timestampForNextRetry,
+      jobId,
+      nextExecutionDate,
+    };
+  }
+
+  public async acknowledge(
+    tokenId: string,
+    ackDescriptor: string,
+    fail?: string
+  ) {
+    const verifiedAckDescriptor = this.verifyAckDescriptor(
+      ackDescriptor,
+      tokenId
+    );
+    if (!verifiedAckDescriptor) {
+      return "descriptor_false";
+    }
+
+    if (fail) {
+      await this.producer.acknowledger.reportFailure(
+        verifiedAckDescriptor,
+        null,
+        fail,
+        {
+          dontReschedule: false, // if the function acknowledged, no 404 happened, so we can continue calling it
+        }
+      );
+    } else {
+      await this.producer.acknowledger.acknowledge(verifiedAckDescriptor);
+    }
   }
 }
 

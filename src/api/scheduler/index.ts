@@ -19,6 +19,7 @@ import telemetry from "./telemetry";
 import sentryPlugin from "./sentry";
 import loggerPlugin from "./logger";
 import indexRoute from "./routes/index";
+import ack from "./routes/ack";
 import { StructuredLogger } from "../shared/structured-logger";
 import { Logger } from "../shared/logger";
 import { jobsRepoPlugin } from "./jobs-repo";
@@ -170,6 +171,7 @@ export async function createServer({
 
   app.register(health, { prefix: "/health" });
   app.register(queues, { prefix: "/queues" });
+  app.register(ack, { prefix: "/ack" });
   app.register(activityPlugin, { prefix: "/activity" });
 
   app.register(indexRoute);

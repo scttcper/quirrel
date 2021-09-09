@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AckBody",
+  "type": "object",
+  "properties": {
+    "acknowledgementDescriptor": {
+      "type": "string",
+      "description": "The descriptor obtained via x-quirrel-acknowledgement-descriptor header."
+    },
+    "fail": {
+      "type": "string",
+      "description": "Optional. If the execution failed, put the reason here."
+    }
+  },
+  "required": ["acknowledgementDescriptor"],
+  "additionalProperties": false
+}

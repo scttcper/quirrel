@@ -546,30 +546,18 @@ export class QuirrelClient<T> {
     }
   }
 
-  async respondTo(
+  private async handleIncomingJob(
     body: string,
     headers: IncomingHttpHeaders
-  ): Promise<{
-    status: number;
-    headers: Record<string, string>;
-    body: string;
-  }> {
+  ): Promise<["success"] | ["fail", { status: number; reason: string }]> {
     if (process.env.NODE_ENV === "production") {
       const signature = headers["x-quirrel-signature"];
       if (typeof signature !== "string") {
-        return {
-          status: 401,
-          headers: {},
-          body: "Signature missing",
-        };
+        return ["fail", { status: 401, reason: "signature missing" }];
       }
 
       if (!this.isValidSignature(body, signature)) {
-        return {
-          status: 401,
-          headers: {},
-          body: "Signature invalid",
-        };
+        return ["fail", { status: 401, reason: "signature invalid" }];
       }
     }
 
@@ -589,18 +577,57 @@ export class QuirrelClient<T> {
         exclusive,
       });
 
-      return {
-        status: 200,
-        headers: {},
-        body: "OK",
-      };
+      return ["success"];
     } catch (error) {
       console.error(error);
-      return {
-        status: 500,
-        headers: {},
-        body: String(error),
-      };
+      return ["fail", { status: 500, reason: String(error) }];
     }
+  }
+
+  async respondTo(
+    body: string,
+    headers: IncomingHttpHeaders
+  ): Promise<{
+    status: number;
+    headers: Record<string, string>;
+    body: string;
+  }> {
+    const result = await this.handleIncomingJob(body, headers);
+    switch (result[0]) {
+      case "success":
+        return {
+          status: 200,
+          headers: {},
+          body: "OK",
+        };
+      case "fail":
+        const { status, reason } = result[1];
+        return {
+          status,
+          body: reason,
+          headers: {},
+        };
+    }
+  }
+
+  async handleInBackground(body: string, headers: IncomingHttpHeaders) {
+    const acknowledgementDescriptor =
+      headers["x-quirrel-acknowledgement-descriptor"];
+    if (typeof acknowledgementDescriptor !== "string") {
+      throw new Error("acknowledgement descriptor is missing");
+    }
+
+    const result = await this.handleIncomingJob(body, headers);
+
+    const ackBody: any = { acknowledgementDescriptor };
+    if (result[0] === "fail") {
+      ackBody.fail = result[1].reason;
+    }
+
+    return await this.makeRequest("/ack", {
+      method: "POST",
+      body: JSON.stringify(ackBody),
+      headers: { "Content-Type": "application/json" },
+    });
   }
 }
