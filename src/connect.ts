@@ -18,7 +18,8 @@ export {
   Job,
 };
 
-export type Queue<Payload> = FrameworkScopedQuirrelClient<Payload>
+export type Queue<Payload> = connect.Server &
+  FrameworkScopedQuirrelClient<Payload>;
 
 declare module "connect" {
   export interface IncomingMessage {
