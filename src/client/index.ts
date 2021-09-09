@@ -629,7 +629,7 @@ export class QuirrelClient<T> {
       ackBody.fail = result[1].reason;
     }
 
-    return await this.makeRequest("/ack", {
+    await this.makeRequest("/ack", {
       method: "POST",
       body: JSON.stringify(ackBody),
       headers: { "Content-Type": "application/json" },

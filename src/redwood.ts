@@ -9,13 +9,20 @@ import {
 } from "./client";
 import { registerDevelopmentDefaults } from "./client/config";
 
-export { Job, EnqueueJobOpts, EnqueueJobOptions, DefaultJobOptions, QuirrelJobHandler };
+export {
+  Job,
+  EnqueueJobOpts,
+  EnqueueJobOptions,
+  DefaultJobOptions,
+  QuirrelJobHandler,
+};
 
 registerDevelopmentDefaults({
   applicationBaseUrl: "http://localhost:8911",
 });
 
 interface RedwoodEvent {
+  path: string;
   body: string;
   headers: Record<string, string>;
 }
@@ -26,7 +33,7 @@ interface RedwoodResponse {
   headers: Record<string, string>;
 }
 
-export type Queue<Payload> = FrameworkScopedQuirrelClient<Payload>
+export type Queue<Payload> = FrameworkScopedQuirrelClient<Payload>;
 
 export function Queue<Payload>(
   route: string,
@@ -39,7 +46,15 @@ export function Queue<Payload>(
     route,
   });
 
-  async function redwoodHandler(event: RedwoodEvent): Promise<RedwoodResponse> {
+  async function redwoodHandler(
+    event: RedwoodEvent
+  ): Promise<RedwoodResponse | void> {
+    const isBackgroundFunction = event.path.endsWith("-background"); // netlify functions can be aliased, this is potentially unreliable
+    if (isBackgroundFunction) {
+      await quirrel.handleInBackground(event.body, event.headers);
+      return;
+    }
+
     const { body, headers, status } = await quirrel.respondTo(
       event.body,
       event.headers
