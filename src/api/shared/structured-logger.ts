@@ -45,12 +45,17 @@ export class StructuredLogger implements Logger {
     tokenId: string;
     endpoint: string;
     body: string;
-  }): () => void {
+  }) {
     const child = this.log.child({ correlationId: uuid.v4() });
 
     child.info({ job }, "Started execution of job.");
-    return () => {
-      child.info({ job }, "Ended execution of job");
+    return {
+      continuedInBackground() {
+        child.info({ job }, "Job execution continues asynchronously");
+      },
+      done() {
+        child.info({ job }, "Ended execution of job");
+      },
     };
   }
 }

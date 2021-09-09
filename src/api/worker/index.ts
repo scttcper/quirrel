@@ -62,7 +62,12 @@ export async function createWorker({
     usageMeter = new UsageMeter(redisClient);
   }
 
-  const owl = await createOwl(redisFactory, logger, incidentReceiver, telemetrist);
+  const owl = await createOwl(
+    redisFactory,
+    logger,
+    incidentReceiver,
+    telemetrist
+  );
 
   const worker = await owl.createWorker(async (job, ack, span) => {
     let { tokenId, endpoint } = decodeQueueDescriptor(job.queue);
@@ -115,8 +120,11 @@ export async function createWorker({
       usageMeter?.record(tokenId),
     ]);
 
-    if (response.status >= 200 && response.status < 300) {
-      executionDone?.();
+    if (response.status === 202) {
+      telemetrist?.dispatch("continued_in_background");
+      executionDone?.continuedInBackground();
+    } else if (response.status >= 200 && response.status < 300) {
+      executionDone?.done();
 
       telemetrist?.dispatch("dispatch_job");
 

@@ -25,7 +25,7 @@ export interface Logger {
     tokenId: string;
     endpoint: string;
     body: string;
-  }): () => void;
+  }): { continuedInBackground(): void; done(): void };
 
   executionErrored(
     job: {

@@ -76,9 +76,7 @@ Listening on {yellow ${address}}.`.trim()
     );
 
     if (deleted.length) {
-      console.log(
-        chalk`  {red obsolete:} {yellow ${deleted.join(", ")}}`
-      );
+      console.log(chalk`  {red obsolete:} {yellow ${deleted.join(", ")}}`);
     }
   }
 
@@ -103,7 +101,7 @@ Listening on {yellow ${address}}.`.trim()
     tokenId: string;
     endpoint: string;
     body: string;
-  }): () => void {
+  }) {
     console.log(
       chalk`
 👟Executing job
@@ -111,8 +109,16 @@ Listening on {yellow ${address}}.`.trim()
      {gray id:} {yellow ${job.id}}
    {gray body:} {yellow ${job.body}}`
     );
-    return () => {
-      console.log("\n" + chalk`✔️ Successfully executed {yellow ${job.id}}.`);
+    return {
+      continuedInBackground() {
+        console.log(
+          "\n" +
+            chalk`⏱ Execution continues asynchronously. {yellow ${job.id}}.`
+        );
+      },
+      done() {
+        console.log("\n" + chalk`✔️ Successfully executed {yellow ${job.id}}.`);
+      },
     };
   }
 }
