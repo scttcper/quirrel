@@ -27,7 +27,7 @@ interface RedwoodResponse {
 
 export type Queue<Payload> = Omit<
   QuirrelClient<Payload>,
-  "respondTo" | "makeRequest"
+  "respondTo" | "makeRequest" | "handleInBackground"
 >;
 
 export function Queue<Payload>(

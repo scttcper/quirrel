@@ -18,7 +18,7 @@ export {
 };
 
 export type Queue<Payload> = connect.Server &
-  Omit<QuirrelClient<Payload>, "respondTo" | "makeRequest">;
+  Omit<QuirrelClient<Payload>, "respondTo" | "makeRequest" | "handleInBackground">;
 
 declare module "connect" {
   export interface IncomingMessage {
