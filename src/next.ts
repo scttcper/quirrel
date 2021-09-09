@@ -5,6 +5,7 @@ import {
   Job,
   DefaultJobOptions,
   QuirrelJobHandler,
+  FrameworkScopedQuirrelClient,
 } from "./client";
 import { registerDevelopmentDefaults } from "./client/config";
 import type { IncomingHttpHeaders } from "http";
@@ -32,10 +33,7 @@ registerDevelopmentDefaults({
   applicationBaseUrl: "http://localhost:3000",
 });
 
-export type Queue<Payload> = Omit<
-  QuirrelClient<Payload>,
-  "respondTo" | "makeRequest" | "handleInBackground"
->;
+export type Queue<Payload> = FrameworkScopedQuirrelClient<Payload>
 
 export function Queue<Payload>(
   route: string,

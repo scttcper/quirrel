@@ -239,6 +239,11 @@ function getAuthHeaders(
   return { Authorization: `Bearer ${token}` };
 }
 
+export type FrameworkScopedQuirrelClient<Payload> = Omit<
+  QuirrelClient<Payload>,
+  "respondTo" | "makeRequest" | "handleInBackground"
+>;
+
 export class QuirrelClient<T> {
   private handler;
   private route;

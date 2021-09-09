@@ -6,6 +6,7 @@ import {
   EnqueueJobOpts,
   EnqueueJobOptions,
   Job,
+  FrameworkScopedQuirrelClient,
 } from "./client";
 import bodyParser from "body-parser";
 
@@ -17,8 +18,7 @@ export {
   Job,
 };
 
-export type Queue<Payload> = connect.Server &
-  Omit<QuirrelClient<Payload>, "respondTo" | "makeRequest" | "handleInBackground">;
+export type Queue<Payload> = FrameworkScopedQuirrelClient<Payload>
 
 declare module "connect" {
   export interface IncomingMessage {

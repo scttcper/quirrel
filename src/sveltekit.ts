@@ -4,6 +4,7 @@ import {
   Job,
   DefaultJobOptions,
   QuirrelJobHandler,
+  FrameworkScopedQuirrelClient,
 } from "./client";
 import { registerDevelopmentDefaults } from "./client/config";
 
@@ -24,10 +25,7 @@ interface SvelteResponse {
   headers: Record<string, string>;
 }
 
-export type Queue<Payload> = Omit<
-  QuirrelClient<Payload>,
-  "respondTo" | "makeRequest" | "handleInBackground"
->;
+export type Queue<Payload> = FrameworkScopedQuirrelClient<Payload>
 
 export function Queue<Payload>(
   route: string,
